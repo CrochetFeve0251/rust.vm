@@ -1,10 +1,12 @@
 pub mod stack;
+pub mod instruction;
 
 pub struct Cpu {
     registers: [i64; 16],
     ram: [i8; 0xFFFF],
     pc: usize,
     ip: i64,
+    cir: i32,
     size: usize,
     flags: [bool; 64],
     running: bool,
@@ -19,6 +21,7 @@ impl Cpu{
             pc: 0,
             ip: 0,
             size: 0,
+            cir: 0,
             running: false,
         }
     }
@@ -35,7 +38,7 @@ impl Cpu{
     pub fn run(&mut self) {
         self.running = true;
         loop {
-            self.fetch();
+            let instruction = self.fetch();
             self.decode();
             self.execute();
             self.memory_access();
@@ -44,8 +47,13 @@ impl Cpu{
     }
 
     fn fetch(&mut self) {
-        let instruction = &mut self.ram[&self.ip];
-
+        let mar = &self.pc;
+        let mdr : &mut i32 = &mut 0i32;
+        for index in 0..4 {
+             mdr += &mut self.ram[mar + index] << index * 8;
+        }
+        &mut self.pc += 4;
+        &mut self.cir = mdr;
     }
 
     fn decode() {

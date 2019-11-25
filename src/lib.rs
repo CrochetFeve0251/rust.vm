@@ -115,4 +115,5 @@ mod tests {
         assert_eq!(cpu.get_ram().to_vec(), initial_ram.to_vec());
     }
 
+
 }
