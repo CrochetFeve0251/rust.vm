@@ -1,7 +1,7 @@
 mod cpu;
-mod instruction;
 use cpu::Cpu;
 use cpu::stack::Stack;
+use cpu::instruction::Instruction;
 
 #[cfg(test)]
 mod tests {
@@ -115,5 +115,12 @@ mod tests {
         assert_eq!(cpu.get_ram().to_vec(), initial_ram.to_vec());
     }
 
+
+    #[test]
+    fn instruction_convert(){
+        let initial = 0x81122300;
+        let result  = Instruction::new(initial);
+
+    }
 
 }
