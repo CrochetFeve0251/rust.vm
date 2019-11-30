@@ -117,10 +117,29 @@ mod tests {
 
 
     #[test]
-    fn instruction_convert(){
+    fn test_random_instruction_convert(){
         let initial = 0x81122300;
         let mut result = Instruction::new(initial);
         assert!(*result.get_bcc() == cpu::instruction::branch_condition_code::BranchConditionCode::B);
+        assert!(*result.get_iv_flag());
+        assert!(*result.get_opcode() == cpu::instruction::opcode::Opcode::OR);
+        assert_eq!(*result.get_op1(), 2);
+        assert_eq!(*result.get_op2(), 2);
+        assert_eq!(*result.get_dest(), 3);
+        assert_eq!(*result.get_iv_value(), 0);
     }
+
+    #[test]
+        fn test_random_instruction_2_convert(){
+            let initial = 0xe0a4537D;
+            let mut result = Instruction::new(initial);
+            assert!(*result.get_bcc() == cpu::instruction::branch_condition_code::BranchConditionCode::BG);
+            assert!(! *result.get_iv_flag());
+            assert!(*result.get_opcode() == cpu::instruction::opcode::Opcode::RSH);
+            assert_eq!(*result.get_op1(), 4);
+            assert_eq!(*result.get_op2(), 5);
+            assert_eq!(*result.get_dest(), 3);
+            assert_eq!(*result.get_iv_value(), 125);
+        }
 
 }

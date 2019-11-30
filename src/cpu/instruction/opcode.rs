@@ -1,3 +1,4 @@
+#[derive(PartialEq)]
 pub enum Opcode {
     AND = 0x0,
     OR = 0x1,
