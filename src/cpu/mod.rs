@@ -36,13 +36,13 @@ impl Cpu{
     }
 
     pub fn run(&mut self) {
-        self.running = true;
+        *&mut self.running = true;
         loop {
             let instruction = self.fetch();
             self.decode();
             self.execute();
             self.memory_access();
-            self.write()
+            self.write();
         }
     }
 
@@ -50,25 +50,25 @@ impl Cpu{
         let mar = &self.pc;
         let mdr : &mut i32 = &mut 0i32;
         for index in 0..4 {
-             mdr += &mut self.ram[mar + index] << index * 8;
+             *mdr += (*&mut self.ram[mar + index] << index * 8) as i32;
         }
-        &mut self.pc += 4;
-        &mut self.cir = mdr;
+        *&mut self.pc += 4;
+        *&mut self.cir = *mdr;
     }
 
-    fn decode() {
-
-    }
-
-    fn execute() {
+    fn decode(&mut self) {
 
     }
 
-    fn memory_access() {
+    fn execute(&mut self) {
 
     }
 
-    fn write() {
+    fn memory_access(&mut self) {
+
+    }
+
+    fn write(&mut self) {
 
     }
 

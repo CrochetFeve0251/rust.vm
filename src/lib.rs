@@ -119,8 +119,8 @@ mod tests {
     #[test]
     fn instruction_convert(){
         let initial = 0x81122300;
-        let result  = Instruction::new(initial);
-
+        let mut result = Instruction::new(initial);
+        assert!(*result.get_bcc() == cpu::instruction::branch_condition_code::BranchConditionCode::B);
     }
 
 }

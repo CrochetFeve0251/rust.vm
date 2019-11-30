@@ -1,5 +1,6 @@
 use crate::cpu::instruction::branch_condition_code::BranchConditionCode;
 use crate::cpu::instruction::opcode::Opcode;
+use ::std::println;
 
 pub mod branch_condition_code;
 pub mod opcode;
@@ -18,9 +19,11 @@ pub struct Instruction{
 impl Instruction {
     pub fn new(code: u32) -> Instruction {
         let bytes = code.to_be_bytes();
+        println!("{:x}\n", bytes[0]);
+        println!("{:x}\n", Instruction::get_high_bytes(bytes[0]));
         let bcc = BranchConditionCode::find(Instruction::get_high_bytes(bytes[0]));
-        let iv_flag= Instruction::get_low_bytes(bytes[0]) as bool;
-        let opcode =  Opcode::find(Instruction::get_high_bytes(bytes[1]));
+        let iv_flag= Instruction::get_low_bytes(bytes[0]) != 0;
+        let opcode = Opcode::find(Instruction::get_high_bytes(bytes[1]));
         let ope1 = Instruction::get_low_bytes(bytes[1]);
         let ope2 = Instruction::get_high_bytes(bytes[2]);
         let dest = Instruction::get_low_bytes(bytes[2]);
@@ -36,14 +39,14 @@ impl Instruction {
         }
     }
 
-    fn get_low_bytes(value: u8) -> u8 {
+    fn get_high_bytes(value: u8) -> u8 {
         let tmp = value >> 4;
-        tmp << 4
+        tmp
     }
 
-    fn get_high_bytes(value: u8) -> u8 {
+    fn get_low_bytes(value: u8) -> u8 {
         let tmp = value << 4;
-        tmp
+        tmp >> 4
     }
 
     pub fn get_bcc(&mut self) -> &mut BranchConditionCode {
