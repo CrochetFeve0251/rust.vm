@@ -229,14 +229,14 @@ mod tests {
         assert_eq!(cpu.get_registers()[1], std::i64::MAX - 1);
         assert_eq!(cpu.get_flags()[1], true);
     }
-/*
+
     #[test]
     fn test_random_substraction_cpu_should_succeed() {
         let initial_state = [
-            0xff,
             0i64,
-            0xff,
+            0x2,
             0i64,
+            0x3,
             0i64,
             0i64,
             0i64,
@@ -250,21 +250,56 @@ mod tests {
             0i64,
             0i64,
         ];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
+        let initial_ram = [0u8; 0xFFFF];
+        //substract the register 3 to the register 1 and store in the register 1
+        let initial_data: [u8; 4] = [
+            0x80,
+            0x61,
+            0x31,
+            0x00
+        ];
+        let data = initial_data.to_vec();
         let mut cpu = Cpu::new(initial_state, initial_ram);
         cpu.load_data(&data);
+        cpu.run();
+        assert_eq!(cpu.get_registers()[1], -1);
     }
 
     #[test]
     fn test_overflow_substraction_cpu_should_succeed() {
-        let initial_state = [0i64; 16];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
+        let initial_state = [
+            0i64,
+            std::i64::MIN,
+            0i64,
+            std::i64::MAX,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+        ];
+        let initial_ram = [0u8; 0xFFFF];
+        let initial_data: [u8; 4] = [
+            0x80,
+            0x61,
+            0x31,
+            0x00
+        ];
+        let data = initial_data.to_vec();
         let mut cpu = Cpu::new(initial_state, initial_ram);
         cpu.load_data(&data);
+        cpu.run();
+        assert_eq!(cpu.get_registers()[1], -9223372036854775806);
+        assert_eq!(cpu.get_flags()[2], true);
     }
-
+/*
     #[test]
     fn test_random_multiplication_cpu_should_succeed() {
         let initial_state = [0i64; 16];
