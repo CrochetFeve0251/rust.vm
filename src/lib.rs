@@ -89,41 +89,55 @@ mod tests {
     #[test]
     fn test_random_instruction_convert(){
         let initial = 0x81122300;
-        let mut result = Instruction::new(initial);
-        assert!(*result.get_bcc() == cpu::instruction::branch_condition_code::BranchConditionCode::B);
-        assert!(*result.get_iv_flag());
-        assert!(*result.get_opcode() == cpu::instruction::opcode::Opcode::OR);
-        assert_eq!(*result.get_op1(), 2);
-        assert_eq!(*result.get_op2(), 2);
-        assert_eq!(*result.get_dest(), 3);
-        assert_eq!(*result.get_iv_value(), 0);
-    }
-
-    #[test]
-        fn test_random_instruction_2_convert(){
-            let initial = 0xe0a4537D;
-            let mut result = Instruction::new(initial);
-            assert!(*result.get_bcc() == cpu::instruction::branch_condition_code::BranchConditionCode::BG);
-            assert!(! *result.get_iv_flag());
-            assert!(*result.get_opcode() == cpu::instruction::opcode::Opcode::RSH);
-            assert_eq!(*result.get_op1(), 4);
-            assert_eq!(*result.get_op2(), 5);
-            assert_eq!(*result.get_dest(), 3);
-            assert_eq!(*result.get_iv_value(), 125);
+        let result = Instruction::new(initial);
+        match result {
+            Instruction::OperationInstruction { opcode, iv_flag, ope1, ope2, dest, iv_value} => {
+                assert!(iv_flag);
+                assert!(opcode == cpu::instruction::opcode::Opcode::OR);
+                assert_eq!(ope1, 2);
+                assert_eq!(ope2, 2);
+                assert_eq!(dest, 3);
+                assert_eq!(iv_value, 0);
+            },
+            Instruction::BranchInstruction { bcc, is_positive, offset } => assert!(false),
+            Instruction::ErrorInstruction => assert!(false)
         }
+    }
 
     #[test]
-    fn test_invalid_instruction_convert_should_fail(){
+        fn test_random_instruction_2_convert() {
         let initial = 0xe0a4537D;
-        let mut result = Instruction::new(initial);
-        assert!(*result.get_bcc() == cpu::instruction::branch_condition_code::BranchConditionCode::BG);
-        assert!(! *result.get_iv_flag());
-        assert!(*result.get_opcode() == cpu::instruction::opcode::Opcode::RSH);
-        assert_eq!(*result.get_op1(), 4);
-        assert_eq!(*result.get_op2(), 5);
-        assert_eq!(*result.get_dest(), 3);
-        assert_eq!(*result.get_iv_value(), 125);
+        let result = Instruction::new(initial);
+        match result {
+            Instruction::OperationInstruction { opcode, iv_flag, ope1, ope2, dest, iv_value } => assert!(false),
+            Instruction::BranchInstruction { bcc, is_positive, offset } => {
+                assert!(bcc == cpu::instruction::branch_condition_code::BranchConditionCode::BG);
+                assert_eq!(is_positive, false);
+                println!("{:x}\n", offset);
+                assert_eq!(offset, 8213636);
+                assert!(true)
+            },
+            Instruction::ErrorInstruction => assert!(false)
+        }
     }
+
+        #[test]
+        fn test_random_instruction_flag_should_success(){
+            let initial = 0xe7a4537D;
+            let result = Instruction::new(initial);
+            match result {
+
+                Instruction::OperationInstruction { opcode, iv_flag, ope1, ope2, dest, iv_value} => assert!(false),
+                Instruction::BranchInstruction { bcc, is_positive, offset } => {
+                    assert!(bcc == cpu::instruction::branch_condition_code::BranchConditionCode::BG);
+                    assert_eq!(is_positive, true);
+                    println!("{:x}\n", offset);
+                    assert_eq!(offset, 8213642);
+                    assert!(true)
+                },
+                Instruction::ErrorInstruction => assert!(false)
+            }
+        }
 
     #[test]
     fn test_random_addition_cpu_should_succeed() {
@@ -299,59 +313,121 @@ mod tests {
         assert_eq!(cpu.get_registers()[1], -9223372036854775806);
         assert_eq!(cpu.get_flags()[2], true);
     }
-/*
+
     #[test]
-    fn test_random_multiplication_cpu_should_succeed() {
-        let initial_state = [0i64; 16];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
+    fn test_branch_with_equal_test_should_succeed() {
+        let initial_state = [
+            0i64,
+            std::i64::MAX,
+            0i64,
+            std::i64::MAX,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+        ];
+        let initial_ram = [0u8; 0xFFFF];
+        let initial_data: [u8; 4] = [
+            0x80,
+            0x51,
+            0x31,
+            0x00
+        ];
+        let data = initial_data.to_vec();
         let mut cpu = Cpu::new(initial_state, initial_ram);
         cpu.load_data(&data);
+        cpu.run();
+        assert_eq!(cpu.get_flags()[3], true);
+        assert_eq!(cpu.get_flags()[4], false);
+        assert_eq!(cpu.get_flags()[5], true);
+        assert_eq!(cpu.get_flags()[6], true);
+        assert_eq!(cpu.get_flags()[7], false);
+        assert_eq!(cpu.get_flags()[8], false);
     }
 
     #[test]
-    fn test_inf_overflow_multiplication_cpu_should_succeed() {
-        let initial_state = [0i64; 16];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
+    fn test_branch_with_min_test_should_succeed() {
+        let initial_state = [
+            0i64,
+            std::i64::MIN,
+            0i64,
+            std::i64::MAX,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+        ];
+        let initial_ram = [0u8; 0xFFFF];
+        let initial_data: [u8; 4] = [
+            0x80,
+            0x51,
+            0x31,
+            0x00
+        ];
+        let data = initial_data.to_vec();
         let mut cpu = Cpu::new(initial_state, initial_ram);
         cpu.load_data(&data);
+        cpu.run();
+        assert_eq!(cpu.get_flags()[3], false);
+        assert_eq!(cpu.get_flags()[4], true);
+        assert_eq!(cpu.get_flags()[5], true);
+        assert_eq!(cpu.get_flags()[6], false);
+        assert_eq!(cpu.get_flags()[7], true);
+        assert_eq!(cpu.get_flags()[8], false);
     }
 
     #[test]
-    fn test_sup_overflow_multiplication_cpu_should_succeed() {
-        let initial_state = [0i64; 16];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
+    fn test_branch_with_max_test_should_succeed() {
+        let initial_state = [
+            0i64,
+            std::i64::MAX,
+            0i64,
+            std::i64::MIN,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+            0i64,
+        ];
+        let initial_ram = [0u8; 0xFFFF];
+        let initial_data: [u8; 4] = [
+            0x80,
+            0x51,
+            0x31,
+            0x00
+        ];
+        let data = initial_data.to_vec();
         let mut cpu = Cpu::new(initial_state, initial_ram);
         cpu.load_data(&data);
+        cpu.run();
+        assert_eq!(cpu.get_flags()[3], false);
+        assert_eq!(cpu.get_flags()[4], true);
+        assert_eq!(cpu.get_flags()[5], false);
+        assert_eq!(cpu.get_flags()[6], true);
+        assert_eq!(cpu.get_flags()[7], false);
+        assert_eq!(cpu.get_flags()[8], true);
     }
-
-    #[test]
-    fn test_random_division_cpu_should_succeed() {
-        let initial_state = [0i64; 16];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
-        let mut cpu = Cpu::new(initial_state, initial_ram);
-        cpu.load_data(&data);
-    }
-
-    #[test]
-    fn test_inf_overflow_division_cpu_should_succeed() {
-        let initial_state = [0i64; 16];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
-        let mut cpu = Cpu::new(initial_state, initial_ram);
-        cpu.load_data(&data);
-    }
-
-    #[test]
-    fn test_sup_overflow_division_cpu_should_succeed() {
-        let initial_state = [0i64; 16];
-        let initial_ram = [0i8; 0xFFFF];
-        let data = [1i8; 0xFFFFF].to_vec();
-        let mut cpu = Cpu::new(initial_state, initial_ram);
-        cpu.load_data(&data);
-    }
-    */
 }

@@ -5,15 +5,22 @@ use ::std::println;
 pub mod branch_condition_code;
 pub mod opcode;
 
-
-pub struct Instruction{
-    bcc: BranchConditionCode,
-    opcode: Opcode,
-    iv_flag: bool,
-    ope1: u8,
-    ope2: u8,
-    dest: u8,
-    iv_value: u8,
+#[derive(Copy, Clone)]
+pub enum Instruction{
+    BranchInstruction{
+        bcc: BranchConditionCode,
+        is_positive: bool,
+        offset: i128,
+    },
+    OperationInstruction{
+        opcode: Opcode,
+        iv_flag: bool,
+        ope1: u8,
+        ope2: u8,
+        dest: u8,
+        iv_value: u8,
+    },
+    ErrorInstruction
 }
 
 impl Instruction {
@@ -22,21 +29,31 @@ impl Instruction {
         println!("{:x}\n", bytes[0]);
         println!("{:x}\n", Instruction::get_high_bytes(bytes[0]));
         let bcc = BranchConditionCode::find(Instruction::get_high_bytes(bytes[0]));
-        let iv_flag= Instruction::get_low_bytes(bytes[0]) != 0;
-        let opcode = Opcode::find(Instruction::get_high_bytes(bytes[1]));
-        let ope1 = Instruction::get_low_bytes(bytes[1]);
-        let ope2 = Instruction::get_high_bytes(bytes[2]);
-        let dest = Instruction::get_low_bytes(bytes[2]);
-        let iv_value = bytes[3];
-        Instruction {
-            bcc,
-            iv_flag,
-            opcode,
-            ope1,
-            ope2,
-            dest,
-            iv_value
+        if bcc == BranchConditionCode::B {
+            let iv_flag= Instruction::get_low_bytes(bytes[0]) != 0;
+            let opcode = Opcode::find(Instruction::get_high_bytes(bytes[1]));
+            let ope1 = Instruction::get_low_bytes(bytes[1]);
+            let ope2 = Instruction::get_high_bytes(bytes[2]);
+            let dest = Instruction::get_low_bytes(bytes[2]);
+            let iv_value = bytes[3];
+            Instruction::OperationInstruction {
+                iv_flag,
+                opcode,
+                ope1,
+                ope2,
+                dest,
+                iv_value
+            }
+        }else{
+            let is_positive = Instruction::get_is_positive_bit(bytes[0]);
+            let offset = Instruction::get_offset(bytes);
+            Instruction::BranchInstruction {
+                bcc,
+                is_positive,
+                offset
+            }
         }
+
     }
 
     fn get_high_bytes(value: u8) -> u8 {
@@ -49,31 +66,17 @@ impl Instruction {
         tmp >> 4
     }
 
-    pub fn get_bcc(&mut self) -> &mut BranchConditionCode {
-        &mut self.bcc
+    fn get_is_positive_bit(value: u8) -> bool {
+        let tmp = value << 6;
+        (tmp >> 6) != 0
     }
 
-    pub fn get_opcode(&mut self) -> &mut Opcode {
-        &mut self.opcode
-    }
-
-    pub fn get_iv_flag(&mut self) -> &mut bool {
-        &mut self.iv_flag
-    }
-
-    pub fn get_op1(&mut self) -> &u8 {
-        &mut self.ope1
-    }
-
-    pub fn get_op2(&mut self) -> &u8 {
-        &mut self.ope2
-    }
-
-    pub fn get_dest(&mut self) -> &u8 {
-        &mut self.dest
-    }
-
-    pub fn get_iv_value(&mut self) -> &u8 {
-        &mut self.iv_value
+    fn get_offset(bytes: [u8; 4]) -> i128 {
+        let mut sum = 0;
+        for index in 1..4 {
+            sum += (bytes[index] as i128) << (index - 1) * 8;
+        }
+        let tmp = bytes[0] >> 1;
+        sum + (tmp << 1) as i128
     }
 }

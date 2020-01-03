@@ -1,4 +1,4 @@
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum BranchConditionCode {
     B = 0x8,
     BEQ = 0x9,
