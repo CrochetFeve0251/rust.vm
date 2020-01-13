@@ -22,12 +22,10 @@ pub enum Instruction{
     },
     ErrorInstruction
 }
-
+///instruction containing all the needed information to be executed
 impl Instruction {
     pub fn new(code: u32) -> Instruction {
         let bytes = code.to_be_bytes();
-        println!("{:x}\n", bytes[0]);
-        println!("{:x}\n", Instruction::get_high_bytes(bytes[0]));
         let bcc = BranchConditionCode::find(Instruction::get_high_bytes(bytes[0]));
         if bcc == BranchConditionCode::B {
             let iv_flag= Instruction::get_low_bytes(bytes[0]) != 0;
@@ -55,22 +53,22 @@ impl Instruction {
         }
 
     }
-
+    ///get the high bits of a byte
     fn get_high_bytes(value: u8) -> u8 {
         let tmp = value >> 4;
         tmp
     }
-
+    ///get the low bits of a byte
     fn get_low_bytes(value: u8) -> u8 {
         let tmp = value << 4;
         tmp >> 4
     }
-
+    ///get the positive bit to know if the offset of the branhc is negative or positive
     fn get_is_positive_bit(value: u8) -> bool {
         let tmp = value << 6;
         (tmp >> 6) != 0
     }
-
+    ///get the offset of the branch
     fn get_offset(bytes: [u8; 4]) -> i128 {
         let mut sum = 0;
         for index in 1..4 {

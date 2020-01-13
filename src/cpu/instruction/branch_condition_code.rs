@@ -8,7 +8,7 @@ pub enum BranchConditionCode {
     BL = 0xd,
     BG = 0xe,
 }
-
+///The branch condition of the instruction
 impl BranchConditionCode {
     pub fn find(code: u8) -> BranchConditionCode {
         match code {

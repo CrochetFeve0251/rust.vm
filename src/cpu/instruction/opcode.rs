@@ -12,7 +12,7 @@ pub enum Opcode {
     LSH = 0x9,
     RSH= 0xa,
 }
-
+///The operation the instruction needs to do
 impl Opcode {
     pub fn find(code: u8) -> Opcode {
         match code {
