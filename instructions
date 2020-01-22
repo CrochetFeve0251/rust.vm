@@ -1,0 +1,4 @@
+B 15
+ADD r1, r2, 4
+CMP r1, r2
+CMP r2, 5
