@@ -1,6 +1,8 @@
+import sys
+
 opcode = {
     "AND" : "0x0",
-    "ORR"  : "0x1",
+    "ORR" : "0x1",
     "XOR" : "0x2",
     "ADD" : "0x3",
     "ADC" : "0x4",
@@ -40,7 +42,7 @@ def compile(tab):
             bits += "0000000" + ("0" if tab[-1][0] == 'r' else "1")  # Branch Condition + Immediate Value Flag
             bits += ('{0: >4}'.format(bin(int(opcode[tab[0]], 16))[2:]).replace(" ", "0"))  # Oeration Code
             bits += ('{0: >4}'.format(bin(int(tab[-2][1:]))[2:]).replace(" ", "0"))  # First Operand
-            bits += "0000" if tab[-1][0] != 'r' else '{0: >4}'.format(bin(int(tab[-1][1:]))[:2]).replace(" ", "0")  # Second Operand
+            bits += "0000" if tab[-1][0] != 'r' else '{0: >4}'.format(bin(int(tab[-1][1:]))[2:]).replace(" ", "0")  # Second Operand
             if tab[0] == "CMP":
                 bits += "0000"  # No destination for CMP
             else:
@@ -48,8 +50,7 @@ def compile(tab):
             bits += "00000000" if tab[-1][0] == 'r' else ('{0: >8}'.format(bin(int(tab[-1]))[2:]).replace(" ", "0"))  # Immediate Value
     else:
         raise("Error")
-
-    return bits
+    return '{0: >8}'.format(hex(int(bits, 2))[2:]).replace(" ", "0")
 
 def read_instructions(file="instructions"):
     instructions = []
@@ -60,13 +61,16 @@ def read_instructions(file="instructions"):
 
 
 def write_instruction(instructions, file="compiled"):
-    with open(file, "w") as compiled_file:
+    with open(file, "wb") as compiled_file:
         for instruction in instructions:
-            compiled_file.write(instruction)
+            compiled_file.write(bytes.fromhex(instruction))
 
 
 if __name__ == "__main__":
-    instructions = read_instructions()
+    if(len(sys.argv) == 2):
+        instructions = read_instructions(sys.argv[1])
+    else:
+        instructions = read_instructions()
     result = []
     for instruction in instructions:
         result.append(compile(lexer(instruction)))
