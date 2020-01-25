@@ -35,7 +35,7 @@ def compile(tab):
     if len(tab) == 2 and tab[0] in bcc:
         bits += bin(int(bcc[tab[0]], 16))[2:]  # Branch Condition Code
         bits += "0" if int(tab[1]) > 0 else "1"  # Positive or Negative
-        bits += ('{0: >27}'.format(bin(int(tab[1]))[2:]).replace(" ", "0"))  # Value
+        bits += ('{0: >27}'.format(bin(abs(int(tab[1])))[2:]).replace(" ", "0"))  # Value
 
     # Data processing instruction
     elif tab[0] in opcode:
