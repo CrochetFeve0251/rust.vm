@@ -27,7 +27,7 @@ impl Instruction {
     pub fn new(code: u32) -> Instruction {
         let bytes = code.to_be_bytes();
         let bcc = BranchConditionCode::find(Instruction::get_high_bytes(bytes[0]));
-        if bcc == BranchConditionCode::B {
+        if bcc == BranchConditionCode::NO_BRANCH {
             let iv_flag= Instruction::get_low_bytes(bytes[0]) != 0;
             let opcode = Opcode::find(Instruction::get_high_bytes(bytes[1]));
             let ope1 = Instruction::get_low_bytes(bytes[1]);
@@ -63,18 +63,18 @@ impl Instruction {
         let tmp = value << 4;
         tmp >> 4
     }
-    ///get the positive bit to know if the offset of the branhc is negative or positive
+    ///get the positive bit to know if the offset of the branch is negative or positive
     fn get_is_positive_bit(value: u8) -> bool {
-        let tmp = value << 6;
-        (tmp >> 6) != 0
+        let tmp = value << 4;
+        (tmp >> 7) != 0
     }
     ///get the offset of the branch
     fn get_offset(bytes: [u8; 4]) -> i128 {
-        let mut sum = 0;
+        let mut sum= 0;
         for index in 1..4 {
-            sum += (bytes[index] as i128) << (index - 1) * 8;
+            sum += (bytes[4 - index] as i128) << (index - 1) * 8;
         }
-        let tmp = bytes[0] >> 1;
+        let tmp = bytes[1] >> 1;
         sum + (tmp << 1) as i128
     }
 }

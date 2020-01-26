@@ -1,5 +1,6 @@
 #[derive(PartialEq, Copy, Clone)]
 pub enum BranchConditionCode {
+    NO_BRANCH = 0x0,
     B = 0x8,
     BEQ = 0x9,
     BNE = 0xa,
@@ -19,7 +20,7 @@ impl BranchConditionCode {
             0xc => BranchConditionCode::BGE,
             0xd => BranchConditionCode::BL,
             0xe => BranchConditionCode::BG,
-            _ => panic!("the bcc is not existing")
+            _ => BranchConditionCode::NO_BRANCH
         }
     }
 }
