@@ -73,6 +73,7 @@ impl Cpu{
                        println!("ope2: {}\n", ope2);
                        println!("dest: {}\n", dest);
                        println!("iv_value: {}\n", iv_value);
+                       println!("carry add: {}\n", self.get_flags()[1]);
                     },
                     instruction::Instruction::BranchInstruction {bcc, is_positive, offset} => {
                         println!("instruction: branch instruction\n");
@@ -209,9 +210,17 @@ impl Cpu{
     }
 
     fn reset_flags(&mut self){
+        let tmp_carry = self.flags[1];
+        let tmp_sub = self.flags[2];
+        let tmp_upper_shift = self.flags[9];
+        let tmp_lower_shift = self.flags[10];
         for index in 0..self.flags.len() {
             self.flags[index] = false;
         }
+        self.flags[1] = tmp_carry;
+        self.flags[2] = tmp_sub;
+        self.flags[9] = tmp_upper_shift;
+        self.flags[10] = tmp_lower_shift;
     }
 
     ///Execute the current instruction
@@ -276,8 +285,34 @@ impl Cpu{
                         }
                     },
                     instruction::opcode::Opcode::MOV => self.registers[result] = value2,
-                    instruction::opcode::Opcode::LSH => self.registers[result] = value1 << value2,
-                    instruction::opcode::Opcode::RSH => self.registers[result] = value1 >> value2,
+                    instruction::opcode::Opcode::LSH => self.registers[result] = {
+                        let nb_one = value1.count_ones();
+                        let mut tmp = value1 << value2;
+                        let new_ones = tmp.count_ones();
+                        self.get_flags()[10] = false;
+                        if self.get_flags()[9] {
+                            self.get_flags()[9] = false;
+                            tmp += 1;
+                        }
+                        if nb_one != new_ones {
+                            self.get_flags()[9] = true;
+                        }
+                        tmp
+                    },
+                    instruction::opcode::Opcode::RSH => self.registers[result] = {
+                        let nb_one = value1.count_ones();
+                        let mut tmp = value1 >> value2;
+                        let new_ones = tmp.count_ones();
+                        self.get_flags()[9] = false;
+                        if self.get_flags()[10] {
+                            self.get_flags()[10] = false;
+                            tmp += 1 << 63;
+                        }
+                        if nb_one != new_ones {
+                            self.get_flags()[10] = true;
+                        }
+                        tmp
+                    },
                     instruction::opcode::Opcode::CMP => {
                         self.flags[3] = value1 == value2;
                         self.flags[4] = value1 != value2;
