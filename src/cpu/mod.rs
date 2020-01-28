@@ -1,4 +1,3 @@
-pub mod stack;
 pub mod instruction;
 
 pub struct Cpu {
@@ -46,91 +45,32 @@ impl Cpu{
                 return;
             }
             self.fetch();
-            if self.verbose {
-                println!("cir: {}\n", self.cir);
-            }
             let instruction = self.decode();
-            if self.verbose {
-                println!("pc: {}\n", self.pc);
-                match instruction {
-                    instruction::Instruction::OperationInstruction {opcode, iv_flag, ope1, ope2, dest, iv_value} => {
-                        println!("instruction: operation instruction\n");
-                        match opcode {
-                            instruction::opcode::Opcode::AND => println!("opcode: AND\n"),
-                            instruction::opcode::Opcode::OR => println!("opcode: OR\n"),
-                            instruction::opcode::Opcode::EOR => println!("opcode: EOR\n"),
-                            instruction::opcode::Opcode::ADD => println!("opcode: ADD\n"),
-                            instruction::opcode::Opcode::ADC => println!("opcode: ADC\n"),
-                            instruction::opcode::Opcode::CMP => println!("opcode: CMP\n"),
-                            instruction::opcode::Opcode::SUB => println!("opcode: SUB\n"),
-                            instruction::opcode::Opcode::SBC => println!("opcode: SBC\n"),
-                            instruction::opcode::Opcode::MOV => println!("opcode: MOV\n"),
-                            instruction::opcode::Opcode::LSH => println!("opcode: LSH\n"),
-                            instruction::opcode::Opcode::RSH => println!("opcode: RSH\n"),
-                        }
-                       println!("iv_flag: {}\n", iv_flag);
-                       println!("ope1: {}\n", ope1);
-                       println!("ope2: {}\n", ope2);
-                       println!("dest: {}\n", dest);
-                       println!("iv_value: {}\n", iv_value);
-                       println!("carry add: {}\n", self.get_flags()[1]);
-                    },
-                    instruction::Instruction::BranchInstruction {bcc, is_positive, offset} => {
-                        println!("instruction: branch instruction\n");
-                        match bcc {
-                            instruction::branch_condition_code::BranchConditionCode::B => {
-                                println!("branch condition code: B\n");
-                            },
-                            instruction::branch_condition_code::BranchConditionCode::BEQ => {
-                                println!("branch condition code: BEQ\n");
-                            },
-                            instruction::branch_condition_code::BranchConditionCode::BNE => {
-                                println!("branch condition code: BNE\n");
-                            },
-                            instruction::branch_condition_code::BranchConditionCode::BLE => {
-                                println!("branch condition code: BLE\n");
-                            },
-                            instruction::branch_condition_code::BranchConditionCode::BGE => {
-                                println!("branch condition code: BGE\n");
-                            },
-                            instruction::branch_condition_code::BranchConditionCode::BL => {
-                                println!("branch condition code: BL\n");
-                            },
-                            instruction::branch_condition_code::BranchConditionCode::BG => {
-                                println!("branch condition code: BG\n");
-                            },
-                            instruction::branch_condition_code::BranchConditionCode::NO_BRANCH => {
-                                println!("branch condition code: NO_BRANCH\n");
-                            },
-                        }
-                        println!("is positive: {}\n", is_positive);
-                        println!("offset: {}\n", offset);
-                    },
-                    instruction::Instruction::ErrorInstruction => {
-                        println!("instruction: error\n");
-                    }
-                }
-            }
             self.execute(instruction);
             if self.verbose {
+                println!("\nExecute:");
+                println!("Registers:");
                 for index in 0..self.registers.len() {
-                    println!("register {}: {}\n", index, self.registers[index]);
+                    println!("register {:x}: {:x}", index, self.registers[index]);
+                }
+                println!("Flags:");
+                for index in 0..self.registers.len() {
+                    println!("flag {:x}: {}", index, self.registers[index]);
                 }
             }
         }
     }
     ///Fetch the instruction from the ram and change the pc
     fn fetch(&mut self) {
+        if self.verbose {
+            println!("\nFetch:");
+        }
         let mar = &self.pc;
         let mdr : &mut u32 = &mut 0u32;
         for index in 0..4 {
             *mdr += (*&mut self.ram[mar + index] as u32) << (3 - index) * 8;
         }
-        *&mut self.cir = *mdr;
-    }
-    ///Decode the instruction
-    fn decode(&mut self) -> instruction::Instruction {
-          let instruction = instruction::Instruction::new(*&mut self.cir);
+        let instruction = instruction::Instruction::new(*&mut self.cir,false, self.verbose);
         *&mut self.pc = match instruction {
             instruction::Instruction::BranchInstruction { bcc, is_positive, offset } => {
                 match bcc {
@@ -205,6 +145,17 @@ impl Cpu{
                 *&mut self.pc + 4
             }
         };
+        *&mut self.cir = *mdr;
+        if self.verbose {
+            println!("pc: {}", self.pc);
+        }
+    }
+    ///Decode the instruction
+    fn decode(&mut self) -> instruction::Instruction {
+        if self.verbose {
+            println!("\nDecode:");
+        }
+        let instruction = instruction::Instruction::new(*&mut self.cir, true, self.verbose);
         self.reset_flags();
         instruction
     }

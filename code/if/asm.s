@@ -1,6 +1,6 @@
 MOV r2, 0
 CMP r0, r1
-BG 2
+BG 3
 MOV r2, 0xfe
-B 1
+B 2
 MOV r2, 0xaf

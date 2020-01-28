@@ -24,16 +24,27 @@ pub enum Instruction{
 }
 ///instruction containing all the needed information to be executed
 impl Instruction {
-    pub fn new(code: u32) -> Instruction {
+    pub fn new(code: u32, execute: bool, debug: bool) -> Instruction {
         let bytes = code.to_be_bytes();
         let bcc = BranchConditionCode::find(Instruction::get_high_bytes(bytes[0]));
         if bcc == BranchConditionCode::NO_BRANCH {
+
             let iv_flag= Instruction::get_low_bytes(bytes[0]) != 0;
             let opcode = Opcode::find(Instruction::get_high_bytes(bytes[1]));
             let ope1 = Instruction::get_low_bytes(bytes[1]);
             let ope2 = Instruction::get_high_bytes(bytes[2]);
             let dest = Instruction::get_low_bytes(bytes[2]);
             let iv_value = bytes[3];
+            if (!execute) && debug {
+                println!("branch condition code: NO_BRANCH");
+            }
+            if execute && debug {
+                println!("iv flag {}", iv_flag);
+                println!("iv value {:x}", iv_value);
+                println!("ope1: {:x}", ope1);
+                println!("ope2: {:x}", ope2);
+                println!("dest: {:x}", dest);
+            }
             Instruction::OperationInstruction {
                 iv_flag,
                 opcode,
@@ -45,6 +56,39 @@ impl Instruction {
         }else{
             let is_positive = Instruction::get_is_positive_bit(bytes[0]);
             let offset = Instruction::get_offset(bytes);
+            if (!execute) && debug {
+            println!("offset: {}", if is_positive {
+                offset + 1
+            }else {
+                offset
+            });
+                match bcc {
+                    branch_condition_code::BranchConditionCode::B => {
+                        println!("branch condition code: B");
+                    },
+                    branch_condition_code::BranchConditionCode::BEQ => {
+                        println!("branch condition code: BEQ");
+                    },
+                    branch_condition_code::BranchConditionCode::BNE => {
+                        println!("branch condition code: BNE");
+                    },
+                    branch_condition_code::BranchConditionCode::BLE => {
+                        println!("branch condition code: BLE");
+                    },
+                    branch_condition_code::BranchConditionCode::BGE => {
+                        println!("branch condition code: BGE");
+                    },
+                    branch_condition_code::BranchConditionCode::BL => {
+                        println!("branch condition code: BL");
+                    },
+                    branch_condition_code::BranchConditionCode::BG => {
+                        println!("branch condition code: BG");
+                    },
+                    branch_condition_code::BranchConditionCode::NO_BRANCH => {
+                        println!("branch condition code: NO_BRANCH");
+                    },
+                }
+            }
             Instruction::BranchInstruction {
                 bcc,
                 is_positive,

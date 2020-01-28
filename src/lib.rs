@@ -1,6 +1,5 @@
 mod cpu;
 use cpu::Cpu;
-use cpu::stack::Stack;
 use cpu::instruction::Instruction;
 
 #[cfg(test)]
@@ -89,7 +88,7 @@ mod tests {
     #[test]
     fn test_random_instruction_convert(){
         let initial = 0x01122300;
-        let result = Instruction::new(initial);
+        let result = Instruction::new(initial, false, false);
         match result {
             Instruction::OperationInstruction { opcode, iv_flag, ope1, ope2, dest, iv_value} => {
                 assert!(iv_flag);
@@ -107,13 +106,13 @@ mod tests {
     #[test]
         fn test_random_instruction_2_convert() {
         let initial = 0xe0a4537D;
-        let result = Instruction::new(initial);
+        let result = Instruction::new(initial, false, false);
         match result {
             Instruction::OperationInstruction { opcode, iv_flag, ope1, ope2, dest, iv_value } => assert!(false),
             Instruction::BranchInstruction { bcc, is_positive, offset } => {
                 assert!(bcc == cpu::instruction::branch_condition_code::BranchConditionCode::BG);
                 assert_eq!(is_positive, false);
-                assert_eq!(offset, 8213636);
+                assert_eq!(offset, 10769441);
                 assert!(true)
             },
             Instruction::ErrorInstruction => assert!(false)
@@ -123,15 +122,14 @@ mod tests {
         #[test]
         fn test_random_instruction_flag_should_success(){
             let initial = 0xe7a4537D;
-            let result = Instruction::new(initial);
+            let result = Instruction::new(initial, false, false);
             match result {
 
                 Instruction::OperationInstruction { opcode, iv_flag, ope1, ope2, dest, iv_value} => assert!(false),
                 Instruction::BranchInstruction { bcc, is_positive, offset } => {
                     assert!(bcc == cpu::instruction::branch_condition_code::BranchConditionCode::BG);
-                    assert_eq!(is_positive, true);
-                    println!("{:x}\n", offset);
-                    assert_eq!(offset, 8213642);
+                    assert_eq!(is_positive, false);
+                    assert_eq!(offset, 10769441);
                     assert!(true)
                 },
                 Instruction::ErrorInstruction => assert!(false)
@@ -246,7 +244,7 @@ mod tests {
     #[test]
     fn test_random_substraction_cpu_should_succeed() {
         let initial_state = [
-            0u64,
+            3u64,
             0x2,
             0u64,
             0x3,
@@ -275,7 +273,7 @@ mod tests {
         let mut cpu = Cpu::new(initial_state, initial_ram, false);
         cpu.load_data(&data);
         cpu.run();
-        assert_eq!(cpu.get_registers()[1], -1);
+        assert_eq!(cpu.get_registers()[1], 0);
     }
 
     #[test]
@@ -309,7 +307,7 @@ mod tests {
         let mut cpu = Cpu::new(initial_state, initial_ram, false);
         cpu.load_data(&data);
         cpu.run();
-        assert_eq!(cpu.get_registers()[1], -9223372036854775806);
+        assert_eq!(cpu.get_registers()[1], 0);
         assert_eq!(cpu.get_flags()[2], true);
     }
 
